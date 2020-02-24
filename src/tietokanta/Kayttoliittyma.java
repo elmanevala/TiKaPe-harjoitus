@@ -63,10 +63,8 @@ public class Kayttoliittyma {
             } else if (kasky.equals("8")) {
                 this.kaskyt.paikanTapahtumat();
             } else if (kasky.equals("9")) {
-                System.out.println("    Suoritetaan tehokkuustestit.");
-                System.out.println("    Työn alla, chillaa...");
-
-                // omasssa luokassaan eli tarvitaan uusi oliomuuttuja.
+                Tehokkuustesti tehokkuustesti = new Tehokkuustesti();
+                tehokkuustesti.testienSuoritus();
             } else if (kasky.equals("lopeta")) {
                 break;
             } else {

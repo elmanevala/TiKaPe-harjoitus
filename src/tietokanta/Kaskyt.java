@@ -1,17 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
+
 package tietokanta;
 
 import java.util.Scanner;
 import java.sql.*;
 
-/**
- *
- * @author elmaneva
- */
+
 public class Kaskyt {
 
     private Connection db;
@@ -209,9 +203,7 @@ public class Kaskyt {
                         System.out.println("    " + r.getString("maara"));
                     }
                 }
-            } else {
-                System.out.println("    Paikkaa ei ole tietokannassa tai siellä ei ole yhtään tapahtumaa annettuna päivänä");
-            }
+            } 
         } catch (SQLException e) {
             System.out.println("    VIRHE:");
             System.out.println("    " + e);
