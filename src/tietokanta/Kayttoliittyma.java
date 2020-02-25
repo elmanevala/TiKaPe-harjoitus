@@ -43,7 +43,7 @@ public class Kayttoliittyma {
         System.out.println("");
 
         while (true) {
-            System.out.print("Valitse toiminto (1–9): ");
+            System.out.print("Valitse toiminto (1–9 tai lopeta): ");
             String kasky = this.lukija.nextLine();
 
             if (kasky.equals("1")) {

@@ -13,10 +13,13 @@ public class Kaskyt {
 
     public Kaskyt() throws SQLException {
         this.lukija = new Scanner(System.in);
-        this.db = DriverManager.getConnection("jdbc:sqlite:testi.db");
+        this.db = DriverManager.getConnection("jdbc:sqlite:tietokanta.db");
     }
 
     public void luoTaulut() throws SQLException {
+        
+        // Luodaan taulut Asiakkaille, Paketeille, Paikoille ja Tapahtumille, jos niitä ei ole vielä luotu.
+        
         Statement s = db.createStatement();
 
         s.execute("PRAGMA foreign_keys = ON");
@@ -24,15 +27,15 @@ public class Kaskyt {
         s.execute("CREATE TABLE IF NOT EXISTS Asiakkaat (id INTEGER PRIMARY KEY, nimi TEXT NOT NULL, UNIQUE(nimi))");
         s.execute("CREATE TABLE IF NOT EXISTS Paketit (id INTEGER PRIMARY KEY, numero INTEGER, asiakas_id INTEGER REFRENCES Asiakkaat NOT NULL, UNIQUE(numero))");
         s.execute("CREATE TABLE IF NOT EXISTS Paikat (id INTEGER PRIMARY KEY, paikka TEXT, UNIQUE(paikka))");
-        s.execute("CREATE TABLE IF NOT EXISTS Tapahtumat (id INTEGER PRIMARY KEY, kuvaus TEXT, paketti_id INTEGER REFRENCES Paketit, paikka_id INTEGER REFRECES Paikat NOT NULL, pvm TEXT, aika TEXT)");
+        s.execute("CREATE TABLE IF NOT EXISTS Tapahtumat (id INTEGER PRIMARY KEY, kuvaus TEXT, paketti_id INTEGER REFRENCES Paketit NOT NULL, paikka_id INTEGER REFRECES Paikat NOT NULL, pvm TEXT, aika TEXT)");
 
         System.out.println("    Tietokanta olemassa");
-        // luodaan tarvittavat taulut
-        // tauluja neljä: asiakkaat, paketit, tapahtumat, paikat
-
     }
 
     public void uusiPaikka() throws SQLException {
+        // Lisätään tauluun Paikat, käyttäjän syöttämä paikka.
+        // Jos samaa paikkaa yritetään lisätä enemmän kuin kerran, tulostuu virheviesti.
+        
         Statement s = db.createStatement();
 
         System.out.println("Uuden paikan lisäys");
@@ -54,6 +57,9 @@ public class Kaskyt {
     }
 
     public void uusiAsiakas() throws SQLException {
+        // Lisätään tauluun Asiakkaat käyttäjän syöttämä asiakas.
+        // Jos samaa paikkaa yritetään lisätä enemmän kuin kerran, tulostuu virheviesti. 
+        
         System.out.println("Uuden asiakkaan lisäys");
 
         System.out.print("    Anna asiakkaan nimi: ");
@@ -72,6 +78,10 @@ public class Kaskyt {
     }
 
     public void uusiPaketti() {
+        // Lisätään tauluun Paketit uusi paketti käyttäjän syöttämällä seurantakoodilla.
+        // Jos paketin omistajaa ei ole Asiakkaat-taulussa tai pakettia yritetään
+        // syöttää enemmän kuin kerran, tulostuu virheviesti.
+        
         System.out.println("Uuden paketin lisäys");
 
         System.out.print("    Anna paketin seurantakoodi: ");
@@ -94,6 +104,10 @@ public class Kaskyt {
     }
 
     public void uusiTapahtuma() {
+        // Lisätään Tapahtumat-tauluun uusi tapahtuma käyttän syöttämillä tiedoilla (paketti, paikka, kuvaus)
+        // sekä päivämäärä.
+        // Jos pakettia tai paikkaa ei ole olemassa, tulostuu virhekoodi.
+        
         System.out.println("Uuden tapahtuman lisäys");
 
         System.out.print("    Anna paketin seurantakoodi: ");
@@ -108,7 +122,7 @@ public class Kaskyt {
         long d = System.currentTimeMillis();
         Date pvm = new Date(d);
         String aika = String.valueOf(pvm);
-
+        
         Time kello = new Time(d);
         String kellonAika = String.valueOf(kello);
 
@@ -124,13 +138,16 @@ public class Kaskyt {
             p1.executeUpdate();
             System.out.println("    Tapahtuma lisätty");
         } catch (SQLException e) {
-            System.out.println("    VIRHE: Jotain tapahtui, en tiedä mitä ://");
-            System.out.println("    " + e);
+            System.out.println("    VIRHE: Paikkaa tai pakettia ei ole tietokannassa");
         }
 
     }
 
     public void paketinTapahtumat() throws SQLException {
+        // Hakee käyttäjän syöttämään pakettiin liittyvät tapahtumat
+        // Jos paketilla ei ole tapahtumia tai sitä ei ole tietokannassa,
+        // tulostuu siitä kertova viesti.
+        
         System.out.println("Haetaan paketin tapahtumat");
 
         System.out.print("    Anna paketin seurantakoodi: ");
@@ -146,11 +163,14 @@ public class Kaskyt {
                 System.out.println("    " + r.getString("pvm") + " " + r.getString("aika") + ", " + r.getString("kuvaus") + ", " + r.getString("paikka"));
             }
         } else {
-            System.out.println("    Paketilla ei ole tapahtumia.");
+            System.out.println("    Paketilla ei ole tapahtumia tai sitä ei ole tietokannassa");
         }
     }
 
     public void asiakkaanPaketit() {
+        // Hakee käyttäjän syöttämän asiakkaan paketit.
+        // Jos asiakasta ei ole tai asiakkaalla ei ole yhtään pakettia, tulostuu siitä kertova viesti.
+        
         System.out.println("Haetaan asiakkaan paketit");
 
         System.out.print("    Anna asiakkaan nimi: ");
@@ -170,15 +190,18 @@ public class Kaskyt {
                     System.out.println("    " + r.getString("numero") + ", " + r.getString("maara"));
                 }
             } else {
-                System.out.println("    Asiakasta ei ole olemassa tai hänellä ei ole paketteja");
+                System.out.println("    Asiakasta ei tietokannassa tai hänellä ei ole paketteja");
             }
         } catch (SQLException e) {
-            System.out.println("    VIRHE:");
-            System.out.println("    " + e);
+            System.out.println("    Tapahtui virhe");
         }
     }
 
     public void paikanTapahtumat() {
+        // Hakee käyttäjän syöttämään paikkaan liittyvien tapahtumien määrän,
+        // Jos paikkaa ei ole tietokannassa, siellä ei ole tapahtumia, tai päivämäärä on syötetty väärässä muodossa,
+        // tulostuu siitä kertova viesti.
+        
         System.out.println("Haetaan paikan tapahtumien määrä");
 
         System.out.print("    Anna paikan nimi: ");
@@ -198,15 +221,14 @@ public class Kaskyt {
                 System.out.println("    Tapahtumia paikassa " + paikka + " päivämääränä " + pvm + ": ");
                 while (r.next()) {
                     if (r.getString("maara").equals("0")) {
-                        System.out.println("    Paikkaa ei ole tietokannassa tai siellä ei ole yhtään tapahtumaa annettuna päivänä");
+                        System.out.println("    Paikkaa ei ole tietokannassa, siellä ei ole yhtään tapahtumaa annettuna päivänä tai päivämäärä on annettu väärässä muodossa");
                     } else {
                         System.out.println("    " + r.getString("maara"));
                     }
                 }
             } 
         } catch (SQLException e) {
-            System.out.println("    VIRHE:");
-            System.out.println("    " + e);
+            System.out.println("    Tapahtui virhe");
         }
 
     }
