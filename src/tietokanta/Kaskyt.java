@@ -25,7 +25,7 @@ public class Kaskyt {
         s.execute("PRAGMA foreign_keys = ON");
 
         s.execute("CREATE TABLE IF NOT EXISTS Asiakkaat (id INTEGER PRIMARY KEY, nimi TEXT NOT NULL, UNIQUE(nimi))");
-        s.execute("CREATE TABLE IF NOT EXISTS Paketit (id INTEGER PRIMARY KEY, numero INTEGER, asiakas_id INTEGER REFRENCES Asiakkaat NOT NULL, UNIQUE(numero))");
+        s.execute("CREATE TABLE IF NOT EXISTS Paketit (id INTEGER PRIMARY KEY, seurantakoodi TEXT, asiakas_id INTEGER REFRENCES Asiakkaat NOT NULL, UNIQUE(seurantakoodi))");
         s.execute("CREATE TABLE IF NOT EXISTS Paikat (id INTEGER PRIMARY KEY, paikka TEXT, UNIQUE(paikka))");
         s.execute("CREATE TABLE IF NOT EXISTS Tapahtumat (id INTEGER PRIMARY KEY, kuvaus TEXT, paketti_id INTEGER REFRENCES Paketit NOT NULL, paikka_id INTEGER REFRECES Paikat NOT NULL, pvm TEXT, aika TEXT)");
 
@@ -33,7 +33,7 @@ public class Kaskyt {
     }
 
     public void uusiPaikka() throws SQLException {
-        // Lisätään tauluun Paikat, käyttäjän syöttämä paikka.
+        // Lisätään tauluun Paikat, käyttäjän syöttämän paikan.
         // Jos samaa paikkaa yritetään lisätä enemmän kuin kerran, tulostuu virheviesti.
         
         Statement s = db.createStatement();
@@ -91,7 +91,7 @@ public class Kaskyt {
         String asiakas = lukija.nextLine();
 
         try {
-            PreparedStatement p1 = db.prepareStatement("INSERT OR ABORT INTO Paketit(numero, asiakas_id) VALUES (?, (SELECT id FROM Asiakkaat WHERE nimi=?))");
+            PreparedStatement p1 = db.prepareStatement("INSERT OR ABORT INTO Paketit(seurantakoodi, asiakas_id) VALUES (?, (SELECT id FROM Asiakkaat WHERE nimi=?))");
             p1.setString(1, paketti);
             p1.setString(2, asiakas);
 
@@ -104,7 +104,7 @@ public class Kaskyt {
     }
 
     public void uusiTapahtuma() {
-        // Lisätään Tapahtumat-tauluun uusi tapahtuma käyttän syöttämillä tiedoilla (paketti, paikka, kuvaus)
+        // Lisätään Tapahtumat-tauluun uusi tapahtuma käyttäjn syöttämillä tiedoilla (paketti, paikka, kuvaus)
         // sekä päivämäärä.
         // Jos pakettia tai paikkaa ei ole olemassa, tulostuu virhekoodi.
         
@@ -128,7 +128,7 @@ public class Kaskyt {
 
         try {
             PreparedStatement p1 = db.prepareStatement("INSERT OR ABORT INTO Tapahtumat(kuvaus, paketti_id, paikka_id, pvm, aika) \n"
-                    + "VALUES (?, (SELECT id FROM Paketit WHERE numero=?), (SELECT id FROM Paikat WHERE paikka=?), ?, ?)");
+                    + "VALUES (?, (SELECT id FROM Paketit WHERE seurantakoodi=?), (SELECT id FROM Paikat WHERE paikka=?), ?, ?)");
             p1.setString(1, kuvaus);
             p1.setString(2, paketti);
             p1.setString(3, paikka);
@@ -153,7 +153,7 @@ public class Kaskyt {
         System.out.print("    Anna paketin seurantakoodi: ");
         String paketti = lukija.nextLine();
 
-        PreparedStatement p = db.prepareStatement("SELECT T.pvm, T.aika, T.kuvaus, P.paikka FROM Paikat P JOIN Tapahtumat T ON T.paikka_id = P.id AND T.paketti_id = (SELECT id FROM Paketit WHERE numero=?)");
+        PreparedStatement p = db.prepareStatement("SELECT T.pvm, T.aika, T.kuvaus, P.paikka FROM Paikat P JOIN Tapahtumat T ON T.paikka_id = P.id AND T.paketti_id = (SELECT id FROM Paketit WHERE seurantakoodi=?)");
         p.setString(1, paketti);
 
         ResultSet r = p.executeQuery();
@@ -177,8 +177,8 @@ public class Kaskyt {
         String asiakas = lukija.nextLine();
 
         try {
-            PreparedStatement p = db.prepareStatement("SELECT Paketit.numero, \n"
-                    + "(SELECT COUNT(T.paketti_id) FROM Paketit P LEFT JOIN Tapahtumat T ON P.id=T.paketti_id AND P.numero=Paketit.numero) maara \n"
+            PreparedStatement p = db.prepareStatement("SELECT Paketit.seurantakoodi, \n"
+                    + "(SELECT COUNT(T.paketti_id) FROM Paketit P LEFT JOIN Tapahtumat T ON P.id=T.paketti_id AND P.seurantakoodi=Paketit.seurantakoodi) maara \n"
                     + "FROM Paketit JOIN Asiakkaat ON Asiakkaat.id = Paketit.asiakas_id AND Asiakkaat.nimi=?");
             p.setString(1, asiakas);
 
@@ -187,13 +187,14 @@ public class Kaskyt {
             if (r.isBeforeFirst()) {
                 System.out.println("    Paketin seurantakoodi ja tapahtumien määrä:");
                 while (r.next()) {
-                    System.out.println("    " + r.getString("numero") + ", " + r.getString("maara"));
+                    System.out.println("    " + r.getString("seurantakoodi") + ", " + r.getString("maara"));
                 }
             } else {
                 System.out.println("    Asiakasta ei tietokannassa tai hänellä ei ole paketteja");
             }
         } catch (SQLException e) {
             System.out.println("    Tapahtui virhe");
+            System.out.println(e);
         }
     }
 

@@ -24,6 +24,9 @@ public class Kayttoliittyma {
     }
 
     public void kaynnista() throws SQLException {
+        // Tulostaa käytettävissä olevat toiminnot ja 
+        // suorittaa toiminnon käyttäjän syöttämän luvun mukaan.
+        // Tulostaa virheviestin, jos toimintoa ei ole olemassa.
 
         System.out.println("Tervetuloa käyttämään tietokantatunkeroa!");
 

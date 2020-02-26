@@ -15,6 +15,12 @@ public class Tehokkuustesti {
     }
 
     public void testienSuoritus() throws SQLException {
+        // Testaa tietokannan tehokkuutta tehtävänannon ohjeiden perusteella.
+        // Luo ensin samat taulut kuin sovelluksessa, mutta eri tiedostoon, ettei
+        // testit vaikuta päätietokantaan.
+        // Suorittaa vaiheet 1–4 saman transaktion sisällä ja muut erikseen.
+        // Lopulta poistaa kaikki taulut, jotta testit voidaan suorittaa useasti.
+        
         System.out.println("Testataan tietokannan tehokkuutta");
         
         Statement s = db.createStatement();
@@ -22,7 +28,7 @@ public class Tehokkuustesti {
         s.execute("PRAGMA foreign_keys = ON");
 
         s.execute("CREATE TABLE IF NOT EXISTS Asiakkaat (id INTEGER PRIMARY KEY, nimi TEXT NOT NULL, UNIQUE(nimi))");
-        s.execute("CREATE TABLE IF NOT EXISTS Paketit (id INTEGER PRIMARY KEY, numero INTEGER, asiakas_id INTEGER REFRENCES Asiakkaat NOT NULL, UNIQUE(numero))");
+        s.execute("CREATE TABLE IF NOT EXISTS Paketit (id INTEGER PRIMARY KEY, seurantakoodi TEXT, asiakas_id INTEGER REFRENCES Asiakkaat NOT NULL, UNIQUE(seurantakoodi))");
         s.execute("CREATE TABLE IF NOT EXISTS Paikat (id INTEGER PRIMARY KEY, paikka TEXT, UNIQUE(paikka))");
         s.execute("CREATE TABLE IF NOT EXISTS Tapahtumat (id INTEGER PRIMARY KEY, kuvaus TEXT, paketti_id INTEGER REFRENCES Paketit NOT NULL, paikka_id INTEGER REFRECES Paikat NOT NULL, pvm TEXT, aika TEXT)");
 
@@ -30,7 +36,7 @@ public class Tehokkuustesti {
 
         PreparedStatement p = db.prepareStatement("INSERT INTO Paikat (paikka) VALUES (?)");
         PreparedStatement p1 = db.prepareStatement("INSERT INTO Asiakkaat (nimi) VALUES (?)");
-        PreparedStatement p2 = db.prepareStatement("INSERT INTO Paketit (numero, asiakas_id) VALUES (?,?)");
+        PreparedStatement p2 = db.prepareStatement("INSERT INTO Paketit (seurantakoodi, asiakas_id) VALUES (?,?)");
         PreparedStatement p3 = db.prepareStatement("INSERT INTO Tapahtumat (paketti_id, paikka_id) VALUES (?, 1)");
 
         long aloitus = System.nanoTime();
