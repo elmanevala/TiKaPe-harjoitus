@@ -7,22 +7,20 @@ import java.util.Scanner;
 public class Tehokkuustesti {
 
     private Connection db;
-    private Scanner lukija;
 
     public Tehokkuustesti() throws SQLException {
-        this.lukija = new Scanner(System.in);
         this.db = DriverManager.getConnection("jdbc:sqlite:tehokkuustestit.db");
     }
 
-    public void testienSuoritus() throws SQLException {
+    public void testienSuoritus(boolean indekseilla) throws SQLException {
         // Testaa tietokannan tehokkuutta tehtävänannon ohjeiden perusteella.
         // Luo ensin samat taulut kuin sovelluksessa, mutta eri tiedostoon, ettei
         // testit vaikuta päätietokantaan.
         // Suorittaa vaiheet 1–4 saman transaktion sisällä ja muut erikseen.
         // Lopulta poistaa kaikki taulut, jotta testit voidaan suorittaa useasti.
-        
+
         System.out.println("Testataan tietokannan tehokkuutta");
-        
+
         Statement s = db.createStatement();
 
         s.execute("PRAGMA foreign_keys = ON");
@@ -72,8 +70,11 @@ public class Tehokkuustesti {
 
         s.execute("COMMIT");
 
-        PreparedStatement p4 = db.prepareStatement("CREATE INDEX idx_asiakas_id ON Paketit (asiakas_id);");
-        p4.executeUpdate();
+        if (indekseilla) {
+            PreparedStatement p4 = db.prepareStatement("CREATE INDEX idx_asiakas_id ON Paketit (asiakas_id);"); //Jos 
+            p4.executeUpdate();
+            p4.close();
+        }
         PreparedStatement p41 = db.prepareStatement("SELECT COUNT(*) FROM Paketit WHERE asiakas_id = ?");
 
         for (int i = 1; i <= 1000; i++) {
@@ -83,8 +84,11 @@ public class Tehokkuustesti {
 
         long viidennenJalkeen = System.nanoTime();
 
-        PreparedStatement p5 = db.prepareStatement("CREATE INDEX idx_paketti_id ON Tapahtumat (paketti_id);");
-        p5.executeUpdate();
+        if (indekseilla) {
+            PreparedStatement p5 = db.prepareStatement("CREATE INDEX idx_paketti_id ON Tapahtumat (paketti_id);");
+            p5.executeUpdate();
+            p5.close();
+        }
         PreparedStatement p51 = db.prepareStatement("SELECT COUNT(*) FROM Tapahtumat WHERE paketti_id = ?");
 
         for (int i = 1; i <= 1000; i++) {
@@ -106,9 +110,7 @@ public class Tehokkuustesti {
         p1.close();
         p2.close();
         p3.close();
-        p4.close();
         p41.close();
-        p5.close();
         p51.close();
 
         Statement s1 = db.createStatement();

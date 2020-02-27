@@ -4,15 +4,6 @@ import java.util.Scanner;
 import java.sql.*;
 import java.util.*;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-/**
- *
- * @author elmaneva
- */
 public class Kayttoliittyma {
 
     private Kaskyt kaskyt;
@@ -41,7 +32,8 @@ public class Kayttoliittyma {
         System.out.println("6: Hae tietyn paketin tapahtumat");
         System.out.println("7: Hae tietyn asiakkaan paketit");
         System.out.println("8: Hae tietyn paikan tapahtumien määrä");
-        System.out.println("9: Suorita tehokkuustesti");
+        System.out.println("9: Suorita tehokkuustesti ilman indeksejä");
+        System.out.println("10: Suorita tehokkuustesti indekseillä");
         System.out.println("lopeta: Lopettaa ohjelman");
         System.out.println("");
 
@@ -67,17 +59,20 @@ public class Kayttoliittyma {
                 this.kaskyt.paikanTapahtumat();
             } else if (kasky.equals("9")) {
                 Tehokkuustesti tehokkuustesti = new Tehokkuustesti();
-                tehokkuustesti.testienSuoritus();
+                tehokkuustesti.testienSuoritus(false);
+            } else if (kasky.equals("10")) {
+                Tehokkuustesti tehokkuustesti = new Tehokkuustesti();
+                tehokkuustesti.testienSuoritus(true);
             } else if (kasky.equals("lopeta")) {
                 break;
             } else {
-                System.out.println("    VIRHE: toimintoa ei olemassa.");
+                System.out.println("    VIRHE: toimintoa ei olemassa");
             }
 
             System.out.println("");
 
         }
-        
+
         System.out.println("");
         System.out.println("Kiitos käynnistä ja tervetuloa uudelleen!");
 
